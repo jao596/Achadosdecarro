@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Painel</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Nunito Sans',Arial,sans-serif;
+    background:radial-gradient(ellipse 120% 60% at 50% 0%, #2a0a0a 0%, #111 40%, #050505 100%);
+    color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+  }
+  .card{
+    width:100%;max-width:460px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+    border-radius:18px;padding:28px;backdrop-filter:blur(6px);
+  }
+  h1{font-size:1.3rem;margin-bottom:18px;color:#fff;}
+  label{display:block;font-size:.82rem;color:#cfcfcf;margin:14px 0 6px;font-weight:700;}
+  input{
+    width:100%;padding:12px 14px;border-radius:10px;border:1px solid #3a3a3a;background:#1a1a1a;color:#fff;font-size:.95rem;
+  }
+  input:focus{outline:none;border-color:#E53935;}
+  button{
+    margin-top:20px;width:100%;padding:14px;border:none;border-radius:12px;
+    background:linear-gradient(135deg,#E53935,#b91c1c);color:#fff;font-weight:800;font-size:1rem;cursor:pointer;
+  }
+  button:hover{filter:brightness(1.08);}
+  button.secondary{background:#1a1a1a;border:1px solid #3a3a3a;margin-top:10px;}
+  .msg{margin-top:14px;font-size:.85rem;line-height:1.5;padding:10px 12px;border-radius:8px;display:none;}
+  .msg.show{display:block;}
+  .msg.ok{background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(74,222,128,.3);}
+  .msg.err{background:rgba(229,57,53,.12);color:#f87171;border:1px solid rgba(248,113,113,.3);}
+  .hint{font-size:.78rem;color:#888;margin-top:4px;line-height:1.5;}
+  details{margin-top:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 14px;}
+  summary{cursor:pointer;font-weight:700;font-size:.85rem;color:#FFD700;}
+  details p, details ol{font-size:.8rem;color:#cfcfcf;margin-top:8px;line-height:1.6;padding-left:18px;}
+  .row{display:flex;gap:10px;}
+  .row > div{flex:1;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .logout{background:none;border:none;color:#888;font-size:.78rem;cursor:pointer;text-decoration:underline;width:auto;margin:0;padding:0;}
+  .spinner{display:none;text-align:center;margin-top:10px;font-size:.85rem;color:#FFD700;}
+</style>
+</head>
+<body>
+
+<div class="card" id="loginCard">
+  <h1>🔒 Acesso restrito</h1>
+  <form id="loginForm">
+    <label>Usuário</label>
+    <input type="text" id="loginUser" autocomplete="username" required />
+    <label>Senha</label>
+    <input type="password" id="loginPass" autocomplete="current-password" required />
+    <button type="submit">Entrar</button>
+  </form>
+  <div class="msg err" id="loginMsg">Usuário ou senha incorretos.</div>
+</div>
+
+<div class="card" id="panelCard" style="display:none;">
+  <div class="topbar">
+    <h1>Links do WhatsApp</h1>
+    <button class="logout" id="logoutBtn">sair</button>
+  </div>
+
+  <details id="cfgDetails">
+    <summary>⚙️ Configuração do repositório (fazer 1 vez)</summary>
+    <div class="row">
+      <div>
+        <label>Usuário/Organização do GitHub</label>
+        <input type="text" id="cfgOwner" placeholder="ex: joaoecesar" />
+      </div>
+      <div>
+        <label>Repositório</label>
+        <input type="text" id="cfgRepo" placeholder="ex: Achadosdecarro" />
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Branch</label>
+        <input type="text" id="cfgBranch" placeholder="main" value="main" />
+      </div>
+      <div>
+        <label>Arquivo</label>
+        <input type="text" id="cfgPath" placeholder="index.html" value="index.html" />
+      </div>
+    </div>
+    <label>Token de acesso do GitHub (Personal Access Token)</label>
+    <input type="password" id="cfgToken" placeholder="ghp_..." />
+    <p class="hint">
+      Esse token fica salvo só neste navegador (nunca é enviado para lugar nenhum além do GitHub).
+    </p>
+    <ol>
+      <li>Acesse github.com → foto de perfil → Settings → Developer settings → Personal access tokens → Fine-grained tokens.</li>
+      <li>Clique em "Generate new token".</li>
+      <li>Em "Repository access", escolha "Only select repositories" e selecione este repositório.</li>
+      <li>Em "Permissions" → "Contents", selecione "Read and write".</li>
+      <li>Gere o token e cole aqui.</li>
+    </ol>
+    <button class="secondary" id="saveCfgBtn" type="button">Salvar configuração</button>
+  </details>
+
+  <button class="secondary" id="loadBtn" type="button">🔄 Carregar links atuais</button>
+
+  <label>Link do grupo Automotivo (usado nos 2 botões)</label>
+  <input type="text" id="urlAutomotivo" placeholder="https://chat.whatsapp.com/..." />
+
+  <label>Link do grupo AlphaFit</label>
+  <input type="text" id="urlAlphafit" placeholder="https://chat.whatsapp.com/..." />
+
+  <button id="saveBtn" type="button">💾 Salvar e publicar no site</button>
+  <div class="spinner" id="spinner">Publicando...</div>
+  <div class="msg" id="panelMsg"></div>
+</div>
+
+<script>
+  const VALID_USER = atob('Sm9hb2VjZXNhcg==');
+  const VALID_PASS = atob('Sm9hb2VjZXNhcjE4Mw==');
+
+  const loginCard = document.getElementById('loginCard');
+  const panelCard = document.getElementById('panelCard');
+  const loginMsg = document.getElementById('loginMsg');
+
+  function showPanel(){
+    loginCard.style.display='none';
+    panelCard.style.display='block';
+    loadConfigFromStorage();
+  }
+
+  if (sessionStorage.getItem('painel_auth') === '1') showPanel();
+
+  document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const user = document.getElementById('loginUser').value.trim();
+    const pass = document.getElementById('loginPass').value.trim();
+    if (user === VALID_USER && pass === VALID_PASS) {
+      sessionStorage.setItem('painel_auth','1');
+      loginMsg.classList.remove('show');
+      showPanel();
+    } else {
+      loginMsg.classList.add('show');
+    }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    sessionStorage.removeItem('painel_auth');
+    panelCard.style.display='none';
+    loginCard.style.display='block';
+  });
+
+  function loadConfigFromStorage(){
+    document.getElementById('cfgOwner').value = localStorage.getItem('cfg_owner') || '';
+    document.getElementById('cfgRepo').value = localStorage.getItem('cfg_repo') || '';
+    document.getElementById('cfgBranch').value = localStorage.getItem('cfg_branch') || 'main';
+    document.getElementById('cfgPath').value = localStorage.getItem('cfg_path') || 'index.html';
+    document.getElementById('cfgToken').value = localStorage.getItem('cfg_token') || '';
+    if (localStorage.getItem('cfg_owner')) document.getElementById('cfgDetails').open = false;
+  }
+
+  document.getElementById('saveCfgBtn').addEventListener('click', () => {
+    localStorage.setItem('cfg_owner', document.getElementById('cfgOwner').value.trim());
+    localStorage.setItem('cfg_repo', document.getElementById('cfgRepo').value.trim());
+    localStorage.setItem('cfg_branch', document.getElementById('cfgBranch').value.trim() || 'main');
+    localStorage.setItem('cfg_path', document.getElementById('cfgPath').value.trim() || 'index.html');
+    localStorage.setItem('cfg_token', document.getElementById('cfgToken').value.trim());
+    document.getElementById('cfgDetails').open = false;
+  });
+
+  function getCfg(){
+    return {
+      owner: localStorage.getItem('cfg_owner') || '',
+      repo: localStorage.getItem('cfg_repo') || '',
+      branch: localStorage.getItem('cfg_branch') || 'main',
+      path: localStorage.getItem('cfg_path') || 'index.html',
+      token: localStorage.getItem('cfg_token') || '',
+    };
+  }
+
+  function b64DecodeUtf8(b64){
+    const bin = atob(b64.replace(/\n/g,''));
+    const bytes = new Uint8Array(bin.length);
+    for (let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder('utf-8').decode(bytes);
+  }
+  function b64EncodeUtf8(str){
+    const bytes = new TextEncoder().encode(str);
+    let bin = '';
+    bytes.forEach(b => bin += String.fromCharCode(b));
+    return btoa(bin);
+  }
+
+  function setMsg(el, text, ok){
+    el.textContent = text;
+    el.className = 'msg show ' + (ok ? 'ok' : 'err');
+  }
+
+  async function fetchFile(){
+    const cfg = getCfg();
+    if (!cfg.owner || !cfg.repo || !cfg.token) throw new Error('Preencha a configuração do repositório e o token primeiro.');
+    const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodeURIComponent(cfg.path)}?ref=${encodeURIComponent(cfg.branch)}`;
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${cfg.token}`,
+        'Accept': 'application/vnd.github+json'
+      }
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Erro ao buscar arquivo (${res.status}): ${body.slice(0,200)}`);
+    }
+    const data = await res.json();
+    return { content: b64DecodeUtf8(data.content), sha: data.sha };
+  }
+
+  document.getElementById('loadBtn').addEventListener('click', async () => {
+    const panelMsg = document.getElementById('panelMsg');
+    try {
+      const { content } = await fetchFile();
+      const autoMatch = content.match(/trackLeadAndRedirect\('([^']+)','automotivo'\)/);
+      const alphaMatch = content.match(/trackLeadAndRedirect\('([^']+)','alphafit'\)/);
+      if (autoMatch) document.getElementById('urlAutomotivo').value = autoMatch[1];
+      if (alphaMatch) document.getElementById('urlAlphafit').value = alphaMatch[1];
+      setMsg(panelMsg, '✅ Links carregados do GitHub.', true);
+    } catch (err) {
+      setMsg(panelMsg, '❌ ' + err.message, false);
+    }
+  });
+
+  function isValidWhatsappUrl(url){
+    return /^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9]+$/.test(url.trim());
+  }
+
+  document.getElementById('saveBtn').addEventListener('click', async () => {
+    const panelMsg = document.getElementById('panelMsg');
+    const spinner = document.getElementById('spinner');
+    const autoUrl = document.getElementById('urlAutomotivo').value.trim();
+    const alphaUrl = document.getElementById('urlAlphafit').value.trim();
+
+    if (!isValidWhatsappUrl(autoUrl) || !isValidWhatsappUrl(alphaUrl)) {
+      setMsg(panelMsg, '❌ Os links devem ter o formato https://chat.whatsapp.com/CODIGO', false);
+      return;
+    }
+
+    spinner.style.display = 'block';
+    panelMsg.classList.remove('show');
+    try {
+      const cfg = getCfg();
+      const { content, sha } = await fetchFile();
+
+      let updated = content.replace(
+        /trackLeadAndRedirect\('[^']+','automotivo'\)/g,
+        `trackLeadAndRedirect('${autoUrl}','automotivo')`
+      );
+      updated = updated.replace(
+        /trackLeadAndRedirect\('[^']+','alphafit'\)/g,
+        `trackLeadAndRedirect('${alphaUrl}','alphafit')`
+      );
+
+      const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodeURIComponent(cfg.path)}`;
+      const res = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${cfg.token}`,
+          'Accept': 'application/vnd.github+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: 'Atualiza links do grupo WhatsApp via painel',
+          content: b64EncodeUtf8(updated),
+          sha: sha,
+          branch: cfg.branch
+        })
+      });
+
+      if (!res.ok) {
+        const body = await res.text();
+        throw new Error(`Erro ao publicar (${res.status}): ${body.slice(0,300)}`);
+      }
+
+      setMsg(panelMsg, '✅ Publicado! O site atualiza em cerca de 1 minuto.', true);
+    } catch (err) {
+      setMsg(panelMsg, '❌ ' + err.message, false);
+    } finally {
+      spinner.style.display = 'none';
+    }
+  });
+</script>
+
+</body>
+</html>
